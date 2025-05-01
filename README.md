@@ -1,8 +1,8 @@
 # image_recommender
 
-image_recommender/
-├── data/                   # image files or links to paths
-├── db/                    # SQLite or PostgreSQL setup
+image_recommender
+├── data                   # image files or links to paths
+├── db                     # SQLite or PostgreSQL setup
 │   └── image_meta.db
 ├── images/                # (optional) image cache
 ├── embeddings/            # Precomputed deep features
