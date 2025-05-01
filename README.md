@@ -1,3 +1,6 @@
+## 📁 Project Structure
+
+```plaintext
 image_recommender/
 ├── data/                  # Raw image files or paths to image directories
 ├── db/                    # Database files (e.g. SQLite)
@@ -19,4 +22,3 @@ image_recommender/
 │   └── test_database.py
 ├── requirements.txt       # Python package dependencies
 └── main.py                # Entry point to run the recommender (CLI or GUI)
-
