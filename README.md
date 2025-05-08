@@ -1,3 +1,27 @@
+# Image Recommender
+
+## Overview
+This repository contains a project designed to identify the top five images most similar to a given photo from a large dataset of nearly 500,000 images. The tool, built in Python, recommends similar images using multiple similarity measures, including color patterns, image embeddings, and YOLO-based object detection.
+
+## Getting Started
+
+### Prerequisites 
+Ensure Python is installed on your system and you have the necessary permissions to execute the scripts.
+
+### Installation
+Clone the repository to your local machine:
+```
+https://github.com/erythrocytecalculus/image_recommender.git
+```
+Navigate to the project directory:
+```
+cd Image-recommender
+```
+Install dependencies:
+```
+pip install . 
+```
+
 ## 📁 Project Structure
 
 ```plaintext
