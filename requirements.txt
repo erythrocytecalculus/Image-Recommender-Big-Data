@@ -1,0 +1,11 @@
+pandas
+numpy
+matplotlib
+Pillow
+opencv-python
+uuid
+tensorflow
+scikit-learn
+tqdm
+scipy
+numba
