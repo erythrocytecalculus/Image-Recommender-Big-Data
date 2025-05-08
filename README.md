@@ -19,7 +19,7 @@ cd Image-recommender
 ```
 Install dependencies:
 ```
-pip install . 
+pip install -r requirements.txt
 ```
 
 ## 📁 Project Structure
@@ -46,3 +46,9 @@ image_recommender/
 │   └── test_database.py
 ├── requirements.txt       # Python package dependencies
 └── main.py                # Entry point to run the recommender (CLI or GUI)
+```
+
+## Contribution
+Feel free to open a pull request or an issue if you have any suggestions for improvements.
+
+## Authors
