@@ -27,4 +27,4 @@ logs/metadata.tsv
 
 # OS cruft (if you want)
 .DS_Store
-Thumbs.db
+Thumbs.db__pycache__/
