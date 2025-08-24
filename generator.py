@@ -1,7 +1,7 @@
 import os
 import pickle
 from tqdm import tqdm
-from config_paths import PATH_TO_IMAGE_DATA, IMAGE_DATA_OUTPUT_PATH, DATABASE_PATH
+from config_paths import IMAGE_DATA_DIR, DB_PATH, IMAGE_DATA_PKL
 from database_utils import generate_insert_into_database
 
 
@@ -28,9 +28,9 @@ def save_data_to_pickle(gen, output_path):
 
 
 def main():
-    gen = generator_to_pickle(PATH_TO_IMAGE_DATA)
-    save_data_to_pickle(gen, IMAGE_DATA_OUTPUT_PATH)
-    generate_insert_into_database(DATABASE_PATH, IMAGE_DATA_OUTPUT_PATH)
+    gen = generator_to_pickle(IMAGE_DATA_DIR)
+    save_data_to_pickle(gen, IMAGE_DATA_PKL)
+    generate_insert_into_database(DB_PATH, IMAGE_DATA_PKL)
 
 
 if __name__ == "__main__":
