@@ -83,7 +83,8 @@ def prepare_tensorboard_data(mode):
         if filename.startswith("embedding.ckpt") or filename == "checkpoint":
             os.remove(os.path.join(LOG_FOLDER, filename))
 
-    # Load features and select the requested mode (e.g., 'embeddings', 'rgb_hists')
+    # Load features and select the requested mode (e.g., 'embeddings',
+    # 'rgb_hists')
     with open(FEATURE_DATA_PKL, "rb") as f:
         embeddings_data = pickle.load(f)
     embeddings_array = np.array([entry[mode] for entry in embeddings_data])

@@ -1,3 +1,4 @@
+from database_utils import create_images_table, insert_images, load_metadata, count_images, fetch_image_path
 import sqlite3
 import pytest
 import os
@@ -5,8 +6,12 @@ import pickle
 import sys
 
 # database.py isn't in the same folder (kept separate for a cleaner structure)
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
-from database_utils import create_images_table, insert_images, load_metadata, count_images, fetch_image_path
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "src")))
 
 
 # Provide a test database connection
@@ -55,7 +60,8 @@ def test_insert_and_count(db_connection, sample_image_data):
     c = conn.cursor()
     c.execute("SELECT COUNT(*) FROM images")
     count = c.fetchone()[0]
-    assert count == len(sample_image_data), f"Expected {len(sample_image_data)} rows, found: {count}"
+    assert count == len(sample_image_data), f"Expected {
+        len(sample_image_data)} rows, found: {count}"
 
 
 def test_select_image_from_database(db_connection, sample_image_data):

@@ -17,7 +17,7 @@ def load_image(path):
 
 def prepare_image(image):
     """
-    Apply preprocessing steps (resize, crop, normalize) 
+    Apply preprocessing steps (resize, crop, normalize)
     and return a tensor ready for model inference.
     """
     transform_pipeline = transforms.Compose([

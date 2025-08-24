@@ -1,3 +1,4 @@
+from histograms import process_image, get_histogram, input_image_histogram
 import pytest
 import numpy as np
 from unittest.mock import patch, MagicMock
@@ -5,8 +6,12 @@ from PIL import Image
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
-from histograms import process_image, get_histogram, input_image_histogram
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "src")))
 
 
 @pytest.fixture

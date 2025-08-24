@@ -25,7 +25,8 @@ FAISS_MATRIX = None
 FEATURE_DATA_CACHE = None
 
 
-def plot_similar_images(input_images, top_similarities, target_size=(512, 512)):
+def plot_similar_images(input_images, top_similarities,
+                        target_size=(512, 512)):
     """
     Visualize the query image(s) alongside the top-k similar results.
 
@@ -46,7 +47,12 @@ def plot_similar_images(input_images, top_similarities, target_size=(512, 512)):
         1,
         len(top_similarities) + 2,
         figsize=(15, 5),
-        gridspec_kw={"width_ratios": [1.5, 0.01] + [1] * len(top_similarities)},
+        gridspec_kw={
+            "width_ratios": [
+                1.5,
+                0.01] +
+            [1] *
+            len(top_similarities)},
     )
     axs[0].imshow(combined_image)
     axs[0].axis("off")
@@ -109,7 +115,8 @@ def _ensure_faiss_index(data):
         return True
 
     # Stack embeddings in the same order as `data`
-    X = np.vstack([np.asarray(entry["embeddings"], dtype=np.float32) for entry in data])
+    X = np.vstack([np.asarray(entry["embeddings"], dtype=np.float32)
+                  for entry in data])
     FAISS_IDS = np.array([entry["image_id"] for entry in data], dtype=np.int64)
 
     # L2-normalize so cosine ~ inner product
@@ -122,7 +129,8 @@ def _ensure_faiss_index(data):
     return True
 
 
-def calculate_similarities(input_images, cursor, mode, metric, top_k=5, verbose=False):
+def calculate_similarities(input_images, cursor, mode,
+                           metric, top_k=5, verbose=False):
     """
     Compute top-k similar images under a chosen feature `mode` and `metric`.
 
@@ -205,12 +213,17 @@ def calculate_similarities(input_images, cursor, mode, metric, top_k=5, verbose=
         top_k_indices = top_k_indices[np.argsort(-sims[top_k_indices])]
 
     elif metric == "euclidean":
-        sims = np.linalg.norm(X - input_transformed, axis=1)  # smaller = better
+        sims = np.linalg.norm(
+            X - input_transformed,
+            axis=1)  # smaller = better
         top_k_indices = np.argpartition(sims, top_k)[:top_k]
         top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]
 
     elif metric == "manhattan":
-        sims = np.sum(np.abs(X - input_transformed), axis=1)  # smaller = better
+        sims = np.sum(
+            np.abs(
+                X - input_transformed),
+            axis=1)  # smaller = better
         top_k_indices = np.argpartition(sims, top_k)[:top_k]
         top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]
 
@@ -231,7 +244,8 @@ def calculate_similarities(input_images, cursor, mode, metric, top_k=5, verbose=
 
     elif metric == "ann_cosine":
         if mode != "embeddings":
-            raise ValueError("ann_cosine is only valid with mode='embeddings'.")
+            raise ValueError(
+                "ann_cosine is only valid with mode='embeddings'.")
         has_faiss = _ensure_faiss_index(data)
 
         # Normalize query vector
@@ -239,12 +253,14 @@ def calculate_similarities(input_images, cursor, mode, metric, top_k=5, verbose=
         q /= (np.linalg.norm(q) + 1e-12)
 
         if has_faiss:
-            D, I = FAISS_INDEX.search(q[None, :], top_k)  # cosine via IP on normed vecs
+            # cosine via IP on normed vecs
+            D, I = FAISS_INDEX.search(q[None, :], top_k)
             sims = D[0]  # higher = better
             top_k_indices = I[0]
         else:
             # Fallback: NumPy-based cosine similarity
-            Xemb = np.array([entry["embeddings"] for entry in data], dtype=np.float32)
+            Xemb = np.array([entry["embeddings"]
+                            for entry in data], dtype=np.float32)
             Xn = Xemb / (np.linalg.norm(Xemb, axis=1, keepdims=True) + 1e-12)
             sims = (Xn @ q).astype(np.float32)  # higher = better
             top_k_indices = np.argpartition(-sims, top_k)[:top_k]

@@ -39,7 +39,8 @@ def count_images(conn):
 
 def fetch_image_path(image_id, cursor):
     """Fetch an image path by image_id."""
-    cursor.execute('SELECT root, file FROM images WHERE image_id = ?', (image_id,))
+    cursor.execute(
+        'SELECT root, file FROM images WHERE image_id = ?', (image_id,))
     result = cursor.fetchone()
     if result:
         root, file = result

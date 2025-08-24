@@ -33,7 +33,8 @@ def main():
     else:
         processed_ids = set()
 
-    # Define model for embeddings (pretrained ResNet18 without the classification head)
+    # Define model for embeddings (pretrained ResNet18 without the
+    # classification head)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
     model.fc = nn.Identity()
@@ -75,7 +76,9 @@ def main():
         if len(feature_data) % CHECKPOINT == 0:
             with open(FEATURE_DATA_PKL, "wb") as f:
                 pickle.dump(feature_data, f)
-            print(f"Checkpoint reached. Saved {len(feature_data)} entries to pickle.")
+            print(
+                f"Checkpoint reached. Saved {
+                    len(feature_data)} entries to pickle.")
 
     # Final save
     with open(FEATURE_DATA_PKL, "wb") as f:

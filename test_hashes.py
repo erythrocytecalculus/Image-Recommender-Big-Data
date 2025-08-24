@@ -1,11 +1,3 @@
-import pytest
-import numpy as np
-from unittest.mock import patch, MagicMock
-from PIL import Image
-import os
-import sys
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 from hashes import (
     process_image,
     get_ahash,
@@ -15,6 +7,19 @@ from hashes import (
     input_image_dhash,
     input_image_phash,      # NEW
 )
+import pytest
+import numpy as np
+from unittest.mock import patch, MagicMock
+from PIL import Image
+import os
+import sys
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "src")))
 
 
 @pytest.fixture
@@ -69,6 +74,7 @@ def test_get_dhash(create_dummy_image):
     assert isinstance(hash_array, np.ndarray)
     assert hash_array.shape == (32 * 32,)
     assert np.all(np.isin(hash_array, [0, 1]))
+
 
 def test_get_phash(create_dummy_image):
     """
