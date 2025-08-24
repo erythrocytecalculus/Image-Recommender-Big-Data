@@ -1,15 +1,30 @@
-*.db
-*.db-wal
-*.db-shm
-*.npy
-*.faiss
+# Project outputs (scoped so we don't ignore all PNG/TSV in the repo)
+data/
+logs/
+
+# If you prefer to keep dirs but ignore contents:
+# /data/*
+# !/data/.gitkeep
+# /logs/*
+# !/logs/.gitkeep
+
+# Binary artifacts produced by the pipeline
 *.pkl
-*.log
-images_v3/
-models/
-__pycache__/
-*.pyc
-*.joblib
+*.db
+
+# TensorBoard & projector artifacts
+logs/events.out.tfevents*
+logs/embedding.ckpt*
+logs/checkpoint
+logs/sprite.png
+logs/metadata.tsv
+
+# Model weights / checkpoints (common patterns)
 *.pt
-*.idx
-*.hdf5
+*.pth
+*.onnx
+*.ckpt
+
+# OS cruft (if you want)
+.DS_Store
+Thumbs.db
