@@ -4,7 +4,7 @@ import os
 IMAGE_DATA_DIR = r"D:\data\image_data"
 
 # Define project base and subdirectories
-PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FOLDER = os.path.join(PROJECT_DIR, "data")
 LOG_FOLDER = os.path.join(PROJECT_DIR, "logs")
 
