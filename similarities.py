@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from PIL import Image
-from config_paths import FEATURE_DATA_OUTPUT_PATH
+from config_paths import FEATURE_DATA_PKL
 from sklearn.metrics.pairwise import cosine_similarity
-from database_utils import select_image_from_database
+from database_utils import fetch_image_path
 from histograms import input_image_histogram
 from hashes import input_image_ahash, input_image_dhash, input_image_phash
 from embeddings import input_image_embedding
@@ -70,7 +70,7 @@ def load_feature_data():
     global FEATURE_DATA_CACHE
     if FEATURE_DATA_CACHE is not None:
         return FEATURE_DATA_CACHE
-    with open(FEATURE_DATA_OUTPUT_PATH, "rb") as f:
+    with open(FEATURE_DATA_PKL, "rb") as f:
         FEATURE_DATA_CACHE = pickle.load(f)
     return FEATURE_DATA_CACHE
 
@@ -267,7 +267,7 @@ def calculate_similarities(input_images, cursor, mode, metric, top_k=5, verbose=
         for i in top_k_indices:
             image_id = data[i]["image_id"]
             sim_value = sims[i]
-            file_path = select_image_from_database(image_id, cursor)
+            file_path = fetch_image_path(image_id, cursor)
             if file_path:
                 top_similarities.append((image_id, sim_value, file_path))
     else:
@@ -275,7 +275,7 @@ def calculate_similarities(input_images, cursor, mode, metric, top_k=5, verbose=
         for rank, i in enumerate(top_k_indices):
             image_id = data[i]["image_id"]
             sim_value = sims[rank]
-            file_path = select_image_from_database(image_id, cursor)
+            file_path = fetch_image_path(image_id, cursor)
             if file_path:
                 top_similarities.append((image_id, sim_value, file_path))
     t7 = time.time()
