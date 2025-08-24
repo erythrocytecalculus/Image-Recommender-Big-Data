@@ -3,7 +3,7 @@ import numpy as np
 import os
 from tqdm import tqdm
 from PIL import Image
-from config_paths import IMAGE_DATA_PKL, FEATURE_DATA_PKL, LOGS_FOLDER
+from config_paths import IMAGE_DATA_PKL, FEATURE_DATA_PKL, LOG_FOLDER
 from tensorboard.plugins import projector
 import tensorflow as tf
 
@@ -79,9 +79,9 @@ def prepare_tensorboard_data(mode):
       - references to metadata and sprite
     """
     # Clean previous checkpoints for a fresh run
-    for filename in os.listdir(LOGS_FOLDER):
+    for filename in os.listdir(LOG_FOLDER):
         if filename.startswith("embedding.ckpt") or filename == "checkpoint":
-            os.remove(os.path.join(LOGS_FOLDER, filename))
+            os.remove(os.path.join(LOG_FOLDER, filename))
 
     # Load features and select the requested mode (e.g., 'embeddings', 'rgb_hists')
     with open(FEATURE_DATA_PKL, "rb") as f:
@@ -91,7 +91,7 @@ def prepare_tensorboard_data(mode):
     # Create a TF variable and save a checkpoint
     embedding_var = tf.Variable(embeddings_array, name="embedding")
     checkpoint = tf.train.Checkpoint(embedding=embedding_var)
-    checkpoint.save(os.path.join(LOGS_FOLDER, "embedding.ckpt"))
+    checkpoint.save(os.path.join(LOG_FOLDER, "embedding.ckpt"))
 
     # Configure projector
     config = projector.ProjectorConfig()
@@ -104,8 +104,8 @@ def prepare_tensorboard_data(mode):
     emb.sprite.image_path = "sprite.png"
     emb.sprite.single_image_dim.extend([12, 12])
 
-    projector.visualize_embeddings(LOGS_FOLDER, config)
-    print(f"Projector config saved at: {LOGS_FOLDER}")
+    projector.visualize_embeddings(LOG_FOLDER, config)
+    print(f"Projector config saved at: {LOG_FOLDER}")
 
 
 def main(mode):
@@ -113,10 +113,10 @@ def main(mode):
     os.makedirs("logs", exist_ok=True)
 
     # Load image metadata
-    image_data = load_image_data(IMAGE_DATA_PKL)
+    image_data = load_image_data(IMAGE_DATA_PKL)[:5000]
 
     # Create metadata file (once)
-    metadata_path = os.path.join(LOGS_FOLDER, "metadata.tsv")
+    metadata_path = os.path.join(LOG_FOLDER, "metadata.tsv")
     if not os.path.exists(metadata_path):
         create_metadata_file(image_data, metadata_path)
 
@@ -127,7 +127,7 @@ def main(mode):
     image_paths = [image_id_to_path[entry["image_id"]] for entry in image_data]
 
     # Create sprite image (once)
-    sprite_image_path = os.path.join(LOGS_FOLDER, "sprite.png")
+    sprite_image_path = os.path.join(LOG_FOLDER, "sprite.png")
     if not os.path.exists(sprite_image_path):
         image_data_array = process_images(image_paths)
         sprite_image = create_sprite(image_data_array)
