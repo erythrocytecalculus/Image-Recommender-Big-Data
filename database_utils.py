@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import pickle
-from config_paths import IMAGE_DATA_OUTPUT_PATH, DATABASE_PATH
+from config_paths import IMAGE_DATA_PKL, DB_PATH
 
 
 def create_images_table(conn):
@@ -58,4 +58,4 @@ def build_database(db_path, metadata_file):
 
 
 if __name__ == "__main__":
-    build_database(DATABASE_PATH, IMAGE_DATA_OUTPUT_PATH)
+    build_database(DB_PATH, IMAGE_DATA_PKL)
