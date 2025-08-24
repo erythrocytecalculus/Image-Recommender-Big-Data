@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from database_utils import fetch_image_path
 from histograms import input_image_histogram
 from hashes import input_image_ahash, input_image_dhash, input_image_phash
-from embeddings import input_image_embedding
+from embeddings import compute_image_embedding
 
 # --- FAISS (optional; graceful fallback provided) ---
 try:
@@ -159,7 +159,7 @@ def calculate_similarities(input_images, cursor, mode, metric, top_k=5, verbose=
 
     elif mode == "embeddings":
         input_transformed = np.mean(
-            [input_image_embedding(image) for image in input_images], axis=0
+            [compute_image_embedding(image) for image in input_images], axis=0
         )
         X = np.array([entry["embeddings"] for entry in data])
 
