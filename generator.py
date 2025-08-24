@@ -1,8 +1,8 @@
 import os
 import pickle
 from tqdm import tqdm
-from config import PATH_TO_IMAGE_DATA, IMAGE_DATA_OUTPUT_PATH, DATABASE_PATH
-from database import generate_insert_into_database
+from config_paths import PATH_TO_IMAGE_DATA, IMAGE_DATA_OUTPUT_PATH, DATABASE_PATH
+from database_utils import generate_insert_into_database
 
 
 # Generator that iterates through folders and yields (root, filename)
