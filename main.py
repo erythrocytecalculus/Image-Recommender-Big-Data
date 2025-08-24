@@ -8,7 +8,7 @@ from PIL import Image
 from config_paths import IMAGE_DATA_PKL, FEATURE_DATA_PKL
 from hashes import get_ahash, get_dhash, get_phash
 from histograms import get_histogram
-from embeddings import get_embedding
+from embeddings import extract_embedding
 
 
 CHECKPOINT = 2000
@@ -40,7 +40,7 @@ def main():
     model.eval().to(device)
 
     # Iterate through a subset of images (first 5000)
-    for images in tqdm(image_data, desc="Processing images"):
+    for images in tqdm(image_data[:5000], desc="Processing images"):
         image_id = images["image_id"]
         filepath = os.path.join(images["root"], images["file"])
 
@@ -53,7 +53,7 @@ def main():
                 if image.mode != "RGB":
                     image = image.convert("RGB")
 
-                embeddings = get_embedding(image, model, device)
+                embeddings = extract_embedding(image, model, device)
                 rgb_hists = get_histogram(image)
                 ahashes = get_ahash(image)
                 dhashes = get_dhash(image)
