@@ -5,7 +5,7 @@ import torch.nn as nn
 from torchvision import models
 from tqdm import tqdm
 from PIL import Image
-from config_paths import IMAGE_DATA_OUTPUT_PATH, FEATURE_DATA_OUTPUT_PATH
+from config_paths import IMAGE_DATA_PKL, FEATURE_DATA_PKL
 from hashes import get_ahash, get_dhash, get_phash
 from histograms import get_histogram
 from embeddings import get_embedding
@@ -20,14 +20,14 @@ def main():
     and persist them to a pickle file with periodic checkpoints.
     """
     # Load list of images (id, root, file)
-    with open(IMAGE_DATA_OUTPUT_PATH, "rb") as f:
+    with open(IMAGE_DATA_PKL, "rb") as f:
         image_data = pickle.load(f)
 
     feature_data = []
 
     # If a previous feature dump exists, resume by skipping processed ids
-    if os.path.exists(FEATURE_DATA_OUTPUT_PATH):
-        with open(FEATURE_DATA_OUTPUT_PATH, "rb") as f:
+    if os.path.exists(FEATURE_DATA_PKL):
+        with open(FEATURE_DATA_PKL, "rb") as f:
             feature_data = pickle.load(f)
         processed_ids = {entry["image_id"] for entry in feature_data}
     else:
@@ -73,12 +73,12 @@ def main():
 
         # Periodic checkpoint save
         if len(feature_data) % CHECKPOINT == 0:
-            with open(FEATURE_DATA_OUTPUT_PATH, "wb") as f:
+            with open(FEATURE_DATA_PKL, "wb") as f:
                 pickle.dump(feature_data, f)
             print(f"Checkpoint reached. Saved {len(feature_data)} entries to pickle.")
 
     # Final save
-    with open(FEATURE_DATA_OUTPUT_PATH, "wb") as f:
+    with open(FEATURE_DATA_PKL, "wb") as f:
         pickle.dump(feature_data, f)
     print(f"Saved remaining {len(feature_data)} entries to pickle.")
 
