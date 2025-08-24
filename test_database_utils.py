@@ -6,7 +6,7 @@ import sys
 
 # database.py isn't in the same folder (kept separate for a cleaner structure)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
-from database_utils import create_table, insert_data, load_data, get_count, select_image_from_database
+from database_utils import create_images_table, insert_images, load_metadata, count_images, fetch_image_path
 
 
 # Provide a test database connection
@@ -19,7 +19,7 @@ def db_connection():
     conn = sqlite3.connect(":memory:")
 
     # Create the table
-    create_table(conn)
+    create_images_table(conn)
     return conn
 
 
@@ -49,7 +49,7 @@ def test_insert_and_count(db_connection, sample_image_data):
     Tests inserting data and counting rows.
     """
     conn = db_connection
-    insert_data(conn, sample_image_data)
+    insert_images(conn, sample_image_data)
 
     # Expect exactly two inserted rows
     c = conn.cursor()
@@ -63,10 +63,10 @@ def test_select_image_from_database(db_connection, sample_image_data):
     Tests fetching image paths from the database.
     """
     conn = db_connection
-    insert_data(conn, sample_image_data)
+    insert_images(conn, sample_image_data)
     c = conn.cursor()
 
-    file_path = select_image_from_database(1, c)
+    file_path = fetch_image_path(1, c)
     expected_path = os.path.normpath("/test/path/image1.jpg")
     file_path = os.path.normpath(file_path)
 
