@@ -5,7 +5,7 @@ import torch.nn as nn
 from torchvision import models
 from tqdm import tqdm
 from PIL import Image
-from config import IMAGE_DATA_OUTPUT_PATH, FEATURE_DATA_OUTPUT_PATH
+from config_paths import IMAGE_DATA_OUTPUT_PATH, FEATURE_DATA_OUTPUT_PATH
 from hashes import get_ahash, get_dhash, get_phash
 from histograms import get_histogram
 from embeddings import get_embedding
