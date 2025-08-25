@@ -1,61 +1,110 @@
-# Image Recommender
+# Image Recommender Big Data
 
-Hello, this is the Image Recommender Project for the subject Big Data Engineering. The goals of this project is to find the 5 best matching images from the provided dataset
-(about 500,000 images) based on at least three different similarity measures. 
+The **Image Recommender System** is a modular framework for recommending images based on **visual similarity**. It allows you to:  
 
-## Overview
-This repository contains a project designed to identify the top five images most similar to a given photo from a large dataset of nearly 500,000 images. The tool, built in Python, recommends similar images using multiple similarity measures, including color histograms, hashes and neural network embeddings. 
+- Generate and store image metadata in a SQL database.  
+- Extract features such as **CNN embeddings (ResNet18)**, **RGB color histograms**, and **image hashes (aHash, dHash, pHash)**.  
+- Query the system with an input image and retrieve the *top-k* most similar results using metrics like **cosine similarity, ANN cosine, Euclidean, Manhattan, Hamming, and Bhattacharyya distance**.  
+- Visualize feature distributions with TensorBoard or custom plots.  
 
-## Getting Started
+## Table of Contents  
 
-### Prerequisites 
-Ensure Python is installed on your system and you have the necessary permissions to execute the scripts.
+- [Overview](#overview)  
+- [Installation](#installation)  
+- [Usage](#usage)  
+- [Visualization](#visualization)  
 
-### Installation
-Clone the repository to your local machine:
+---
+
+## Overview  
+
+The pipeline consists of four main components:  
+
+1. **Metadata & Database Setup**  
+   - Scans the dataset and extracts metadata (IDs, file paths).  
+   - Stores this data in a SQL database for indexing and querying.  
+
+2. **Feature Extraction**  
+   - **Embeddings**: ResNet18 generates semantic feature vectors.  
+   - **RGB Histograms**: Encodes the global distribution of colors in an image.  
+   - **Hashing**: aHash, dHash, and pHash for structural and perceptual similarity.  
+
+3. **Similarity Computation**  
+   - Supported distance functions:  
+     - **Cosine**  
+     - **ANN Cosine** (Approximate Nearest Neighbor search)  
+     - **Euclidean**  
+     - **Manhattan**  
+     - **Hamming**  
+     - **Bhattacharyya distance**  
+   - Returns the *top-k* most similar database images.  
+
+4. **Exploration & Visualization**  
+   - Jupyter notebook (`show_similarites.ipynb`) for interactive similarity search.  
+   - TensorBoard and dimensionality reduction (e.g., UMAP) for embedding visualization.  
+
+
+## Installation  
+
+1. **Clone this repository**  
+```bash
+git clone https://github.com/erythrocytecalculus/Image-Recommender-Big-Data.git
 ```
-https://github.com/erythrocytecalculus/image_recommender.git
+
+2. **Navigate to the project directory**
 ```
-Navigate to the project directory:
+cd image_recommender
 ```
-cd Image-recommender
-```
-Install dependencies:
+
+3. **Install the dependencies**
 ```
 pip install -r requirements.txt
 ```
 
-## How it works 
+---
+
+## Usage
+
+After setting up the repository, the pipeline runs in several stages:
+
+**1. Configure your dataset**  
+- Open the configuration file (`config.py`).  
+- Replace the example path with the location of your own dataset, e.g.:  
+
+  ```python
+  # Path to the local image dataset
+  IMAGE_DATA_DIR = r"D:\data\image_data"
 
 
+2. **Run the Generator and create the database, Run follwoing commands from directory root**
 
-## 📁 Project Structure
-
-```plaintext
-image_recommender/
-├── data/                  # Raw image files or paths to image directories
-├── db/                    # Database files (e.g. SQLite)
-│   └── image_meta.db      # Stores image metadata and file mappings
-├── images/                # (Optional) Cached images or thumbnails
-├── src/                   # Main source code
-│   ├── database.py        # Handles image ID ↔ metadata ↔ file path mappings
-│   ├── generator.py       # Image loading and preprocessing pipeline
-│   ├── similarity/
-│   │   ├── color.py       # Color histogram-based similarity
-│   │   ├── embedding.py   # Similarity based on deep features (e.g. CNN)
-│   │   ├── custom.py      # Custom similarity metric (e.g. hashing)
-├── tests/                 # Unit tests
-│   ├── test_similarity.py
-│   └── test_database.py
-├── requirements.txt       # Python package dependencies
-└── main.py                # Entry point to run the recommender (CLI or GUI)
+```
+python generator.py
 ```
 
-## Visualization 
+3. **Execute the main loop to extract feature data**
+Execute the main pipeline to extract image features. (This step may take a while, depending on your dataset size.)
+
+```
+python main.py
+```
+
+**4. View similarity results**  
+- Launch the Jupyter Notebook `show_similarites.ipynb`.  
+- Insert the file paths of your query images into the input list.  
+- The notebook will call the `calculate_similarites()` function from `similarites.py`, which supports the following arguments:  
+
+  - **input_images**: list of query image paths  
+  - **cursor**: database cursor for accessing stored features  
+  - **mode**: similarity method (`embeddings | rgb | ahash | dhash | phash`)  
+  - **metric**: distance measure (`cosine | ann_cosine | euclidean | manhattan | hamming | bhattacharyya`)  
+  - **top_k**: number of nearest results to return (default = 5)  
+  - **verbose**: set to `True` to log runtime details (default = `False`)  
 
 
+---
 
-## Contribution
-Feel free to open a pull request or an issue if you have any suggestions for improvements.
 
-## Authors
+## **Visualisation**
+
+You can visualize the images either in a Tensorboard or with Dimensionreduction
