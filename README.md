@@ -76,14 +76,13 @@ After setting up the repository, the pipeline runs in several stages:
   IMAGE_DATA_DIR = r"D:\data\image_data"
 
 
-2. **Run the Generator and create the database, Run follwoing commands from directory root**
-
+2. **Run the generator to build the database**
+Execute the following command from the project’s root directory:  
 ```
 python generator.py
 ```
 
-3. **Execute the main loop to extract feature data**
-Execute the main pipeline to extract image features. (This step may take a while, depending on your dataset size.)
+3. **Run the main pipeline to extract features**
 
 ```
 python main.py
