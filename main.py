@@ -40,8 +40,8 @@ def main():
     model.fc = nn.Identity()
     model.eval().to(device)
 
-    # Iterate through a subset of images (first 5000)
-    for images in tqdm(image_data[:5000], desc="Processing images"):
+    # Iterate through a subset of images
+    for images in tqdm(image_data, desc="Processing images"):
         image_id = images["image_id"]
         filepath = os.path.join(images["root"], images["file"])
 

@@ -114,7 +114,7 @@ def main(mode):
     os.makedirs("logs", exist_ok=True)
 
     # Load image metadata
-    image_data = load_image_data(IMAGE_DATA_PKL)[:5000]
+    image_data = load_image_data(IMAGE_DATA_PKL)
 
     # Create metadata file (once)
     metadata_path = os.path.join(LOG_FOLDER, "metadata.tsv")
