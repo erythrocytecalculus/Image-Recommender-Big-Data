@@ -2,10 +2,10 @@ from hashes import (
     process_image,
     get_ahash,
     get_dhash,
-    get_phash,              # NEW
+    get_phash,              
     input_image_ahash,
     input_image_dhash,
-    input_image_phash,      # NEW
+    input_image_phash,      
 )
 import pytest
 import numpy as np
