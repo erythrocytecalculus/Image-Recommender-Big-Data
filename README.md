@@ -106,4 +106,4 @@ python main.py
 
 ## **Visualisation**
 
-You can visualize the images either in a Tensorboard or with Dimensionreduction
+You can visualize the images in a Tensorboard
