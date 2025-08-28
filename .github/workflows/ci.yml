@@ -45,7 +45,7 @@ jobs:
 
       - name: PEP8 lint (pycodestyle)
         run: |
-          pycodestyle src tests
+          pycodestyle .
 
       - name: Run tests
         run: pytest -v
