@@ -17,42 +17,29 @@ try:
 except Exception:
     faiss = None
 
-# Reusable globals so we build the FAISS index only once per session
+# Globals
 FAISS_INDEX = None
 FAISS_IDS = None
 FAISS_MATRIX = None
-
 FEATURE_DATA_CACHE = None
 
 
+# -----------------------------
+# Visualization helper
+# -----------------------------
 def plot_similar_images(input_images, top_similarities,
                         target_size=(512, 512)):
-    """
-    Visualize the query image(s) alongside the top-k similar results.
-
-    Args:
-        input_images (list[str]): Paths to the query image files.
-        top_similarities (list[tuple]): (image_id, score, filepath) for retrieved items.
-        target_size (tuple): (width, height) to render all images uniformly.
-    """
-    # Build a horizontal strip of all query images
+    """Visualize the query image(s) alongside the top-k similar results."""
     combined_width = target_size[0] * len(input_images)
     combined_image = Image.new("RGB", (combined_width, target_size[1]))
     for i, image in enumerate(input_images):
         img = Image.open(image).resize(target_size).convert("RGB")
         combined_image.paste(img, (i * target_size[0], 0))
 
-    # Create figure: [query strip] | divider | [results...]
     fig, axs = plt.subplots(
-        1,
-        len(top_similarities) + 2,
+        1, len(top_similarities) + 2,
         figsize=(15, 5),
-        gridspec_kw={
-            "width_ratios": [
-                1.5,
-                0.01] +
-            [1] *
-            len(top_similarities)},
+        gridspec_kw={"width_ratios": [1.5, 0.01] + [1] * len(top_similarities)},
     )
     axs[0].imshow(combined_image)
     axs[0].axis("off")
@@ -71,6 +58,9 @@ def plot_similar_images(input_images, top_similarities,
     plt.show()
 
 
+# -----------------------------
+# Data loading
+# -----------------------------
 def load_feature_data():
     """Load feature rows from disk once and cache them in memory."""
     global FEATURE_DATA_CACHE
@@ -81,15 +71,11 @@ def load_feature_data():
     return FEATURE_DATA_CACHE
 
 
+# -----------------------------
+# Histogram metric
+# -----------------------------
 def _bhattacharyya_distance(h1, h2, eps: float = 1e-12) -> float:
-    """
-    Compute Bhattacharyya distance between two histograms (smaller => more similar).
-
-    Steps:
-      1) L1-normalize both histograms.
-      2) Compute coefficient BC = sum(sqrt(h1 * h2)).
-      3) Distance = -ln(BC + eps).
-    """
+    """Bhattacharyya distance between two histograms (smaller = more similar)."""
     h1 = h1.astype(float)
     h2 = h2.astype(float)
     s1, s2 = h1.sum(), h2.sum()
@@ -101,12 +87,13 @@ def _bhattacharyya_distance(h1, h2, eps: float = 1e-12) -> float:
     return float(-np.log(bc + eps))
 
 
-def _ensure_faiss_index(data):
+# -----------------------------
+# FAISS index (IVF-Flat)
+# -----------------------------
+def _ensure_faiss_index(data, nlist=1000, nprobe=10):
     """
-    Build a cosine-similarity FAISS index (IndexFlatIP) over embeddings once.
-
-    Returns:
-        bool: True if FAISS is available and the index is ready; False otherwise.
+    Build an approximate FAISS IVF-Flat index over embeddings.
+    nlist = number of clusters, nprobe = clusters searched at query.
     """
     global FAISS_INDEX, FAISS_IDS, FAISS_MATRIX, faiss
     if faiss is None:
@@ -114,36 +101,37 @@ def _ensure_faiss_index(data):
     if FAISS_INDEX is not None:
         return True
 
-    # Stack embeddings in the same order as `data`
+    # Stack embeddings
     X = np.vstack([np.asarray(entry["embeddings"], dtype=np.float32)
                   for entry in data])
     FAISS_IDS = np.array([entry["image_id"] for entry in data], dtype=np.int64)
 
-    # L2-normalize so cosine ~ inner product
+    # Normalize for cosine
     norms = np.linalg.norm(X, axis=1, keepdims=True) + 1e-12
     FAISS_MATRIX = X / norms
 
-    # Flat inner-product index (cosine ≈ IP on normalized vectors)
-    FAISS_INDEX = faiss.IndexFlatIP(FAISS_MATRIX.shape[1])
+    d = FAISS_MATRIX.shape[1]
+    quantizer = faiss.IndexFlatIP(d)
+    FAISS_INDEX = faiss.IndexIVFFlat(quantizer, d, nlist, faiss.METRIC_INNER_PRODUCT)
+
+    # Train IVF index
+    FAISS_INDEX.train(FAISS_MATRIX)
     FAISS_INDEX.add(FAISS_MATRIX)
+
+    # Set how many clusters to search
+    FAISS_INDEX.nprobe = nprobe
     return True
 
 
+# -----------------------------
+# Main similarity function
+# -----------------------------
 def calculate_similarities(input_images, cursor, mode,
                            metric, top_k=5, verbose=False):
     """
-    Compute top-k similar images under a chosen feature `mode` and `metric`.
-
-    Args:
-        input_images (list[str]): Paths to query images.
-        cursor: SQLite cursor used by select_image_from_database.
-        mode (str): One of {'rgb','embeddings','ahashes','dhashes','phashes'}.
-        metric (str): One of {'cosine','euclidean','manhattan','hamming','bhattacharyya','ann_cosine'}.
-        top_k (int): Number of nearest results to return.
-        verbose (bool): If True, print timing breakdowns.
-
-    Returns:
-        list[tuple]: (image_id, similarity_or_distance, filepath) for the top-k results.
+    Compute top-k similar images under a chosen feature mode and metric.
+    mode ∈ {'rgb','embeddings','ahashes','dhashes','phashes'}
+    metric ∈ {'cosine','euclidean','manhattan','hamming','bhattacharyya','ann_cosine'}
     """
     global FEATURE_DATA_CACHE
     mode = mode.lower()
@@ -151,14 +139,9 @@ def calculate_similarities(input_images, cursor, mode,
     start_time = time.time()
 
     # Load features
-    t0 = time.time()
     data = load_feature_data()
-    t1 = time.time()
-    if verbose:
-        print(f"Time to load feature data: {t1 - t0:.4f} s")
 
     # ---- Feature extraction for the query ----
-    t2 = time.time()
     if mode == "rgb":
         input_transformed = np.mean(
             [input_image_histogram(image) for image in input_images], axis=0
@@ -190,96 +173,64 @@ def calculate_similarities(input_images, cursor, mode,
         X = np.array([entry["phashes"] for entry in data])
 
     else:
-        raise ValueError(
-            "Invalid mode. Choose from 'rgb', 'embeddings', 'ahashes', 'phashes', 'dhashes'."
-        )
+        raise ValueError("Invalid mode.")
 
-    # For hash modes, re-binarize after averaging multiple queries
+    # For hash modes, re-binarize
     if mode in {"ahashes", "dhashes", "phashes"}:
         input_transformed = (input_transformed > 0.5).astype(np.uint8)
         X = (X > 0.5).astype(np.uint8)
 
-    t3 = time.time()
-    if verbose:
-        print(f"Time to extract features: {t3 - t2:.4f} s")
-
-    # ---- Similarity / distance computation ----
-    t4 = time.time()
-
+    # ---- Similarity computation ----
     if metric == "cosine":
-        input_vec = input_transformed.reshape(1, -1)
-        sims = cosine_similarity(input_vec, X).flatten()  # higher = better
+        sims = cosine_similarity(input_transformed.reshape(1, -1), X).flatten()
         top_k_indices = np.argpartition(-sims, top_k)[:top_k]
         top_k_indices = top_k_indices[np.argsort(-sims[top_k_indices])]
 
     elif metric == "euclidean":
-        sims = np.linalg.norm(
-            X - input_transformed,
-            axis=1)  # smaller = better
+        sims = np.linalg.norm(X - input_transformed, axis=1)
         top_k_indices = np.argpartition(sims, top_k)[:top_k]
         top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]
 
     elif metric == "manhattan":
-        sims = np.sum(
-            np.abs(
-                X - input_transformed),
-            axis=1)  # smaller = better
+        sims = np.sum(np.abs(X - input_transformed), axis=1)
         top_k_indices = np.argpartition(sims, top_k)[:top_k]
         top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]
 
     elif metric == "hamming":
-        sims = np.sum(input_transformed != X, axis=1)  # smaller = better
+        sims = np.sum(input_transformed != X, axis=1)
         top_k_indices = np.argpartition(sims, top_k)[:top_k]
         top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]
 
     elif metric == "bhattacharyya":
         if mode != "rgb":
-            raise ValueError("Bhattacharyya is only valid with mode='rgb'.")
-        sims = np.array(
-            [_bhattacharyya_distance(input_transformed, row) for row in X],
-            dtype=float,
-        )  # smaller = better
+            raise ValueError("Bhattacharyya only valid for mode='rgb'.")
+        sims = np.array([_bhattacharyya_distance(input_transformed, row) for row in X])
         top_k_indices = np.argpartition(sims, top_k)[:top_k]
         top_k_indices = top_k_indices[np.argsort(sims[top_k_indices])]
 
     elif metric == "ann_cosine":
         if mode != "embeddings":
-            raise ValueError(
-                "ann_cosine is only valid with mode='embeddings'.")
+            raise ValueError("ann_cosine only valid with embeddings.")
         has_faiss = _ensure_faiss_index(data)
-
-        # Normalize query vector
         q = np.asarray(input_transformed, dtype=np.float32)
         q /= (np.linalg.norm(q) + 1e-12)
-
         if has_faiss:
-            # cosine via IP on normed vecs
             D, I = FAISS_INDEX.search(q[None, :], top_k)
-            sims = D[0]  # higher = better
+            sims = D[0]
             top_k_indices = I[0]
         else:
-            # Fallback: NumPy-based cosine similarity
-            Xemb = np.array([entry["embeddings"]
-                            for entry in data], dtype=np.float32)
-            Xn = Xemb / (np.linalg.norm(Xemb, axis=1, keepdims=True) + 1e-12)
-            sims = (Xn @ q).astype(np.float32)  # higher = better
+            # Fallback: NumPy cosine
+            Xn = X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-12)
+            sims = (Xn @ q).astype(np.float32)
             top_k_indices = np.argpartition(-sims, top_k)[:top_k]
             top_k_indices = top_k_indices[np.argsort(-sims[top_k_indices])]
 
     else:
-        raise ValueError(
-            "Invalid metric! Use 'cosine', 'euclidean', 'manhattan', 'hamming', 'bhattacharyya', or 'ann_cosine'."
-        )
+        raise ValueError("Invalid metric!")
 
-    t5 = time.time()
-    if verbose:
-        print(f"Time to compute similarities: {t5 - t4:.4f} s")
-
-    # ---- Retrieve top-k image paths from DB ----
-    t6 = time.time()
+    # ---- Retrieve paths ----
     top_similarities = []
     if len(sims) == len(data):
-        # Non-ANN paths: one score per database row
         for i in top_k_indices:
             image_id = data[i]["image_id"]
             sim_value = sims[i]
@@ -287,24 +238,13 @@ def calculate_similarities(input_images, cursor, mode,
             if file_path:
                 top_similarities.append((image_id, sim_value, file_path))
     else:
-        # ANN path: sims contains only the top_k scores
         for rank, i in enumerate(top_k_indices):
             image_id = data[i]["image_id"]
             sim_value = sims[rank]
             file_path = fetch_image_path(image_id, cursor)
             if file_path:
                 top_similarities.append((image_id, sim_value, file_path))
-    t7 = time.time()
-    if verbose:
-        print(f"Time to retrieve top-K images: {t7 - t6:.4f} s")
-
-    total_time = time.time() - start_time
-    if verbose:
-        print(f"Total execution time: {total_time:.4f} s")
 
     # ---- Plot results ----
-    t8 = time.time()
     plot_similar_images(input_images, top_similarities)
-    t9 = time.time()
-    if verbose:
-        print(f"Time to plot images: {t9 - t8:.4f} s")
+    return top_similarities
